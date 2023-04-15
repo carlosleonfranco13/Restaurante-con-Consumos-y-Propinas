@@ -138,15 +138,22 @@ function agregarPlatillo(producto) {
     cliente.pedido = [...resultado];
   }
 
-  // Mostrar el resumen
-  actualizarResumen();
+  // Limpiar el código HTML previo
+  limpiarHTML();
+
+  if (cliente.pedido.length) {
+    // Mostrar el resumen
+    actualizarResumen();
+  } else {
+    mensajePedidoVacio();
+  }
 }
 
 function actualizarResumen() {
   const contenido = document.querySelector("#resumen .contenido");
 
   const resumen = document.createElement("DIV");
-  resumen.classList.add("col-md-6");
+  resumen.classList.add("col-md-6", "card", "py-5", "px-3", "shadow");
 
   // Información de la mesa
   const mesa = document.createElement("P");
@@ -170,8 +177,127 @@ function actualizarResumen() {
   mesa.appendChild(mesaSpan);
   hora.appendChild(horaSpan);
 
+  // Título de la sección
+  const heading = document.createElement("H3");
+  heading.textContent = "Platillos Consumidos";
+  heading.classList.add("my-4", "text-center");
 
-  // Agregar al contenido 
-  contenido.appendChild(mesa);
-  contenido.appendChild(hora);
+  // Iterar sobre el Array de pedidos
+  const grupo = document.createElement("UL");
+  grupo.classList.add("list-group");
+
+  const { pedido } = cliente;
+  pedido.forEach((articulo) => {
+    const { nombre, cantidad, precio, id } = articulo;
+
+    const lista = document.createElement("LI");
+    lista.classList.add("list-group-item");
+
+    const nombreEl = document.createElement("H4");
+    nombreEl.classList.add("my-4");
+    nombreEl.textContent = nombre;
+
+    // Cantidad del articulo
+    const cantidadEl = document.createElement("P");
+    cantidadEl.classList.add("fw-bold");
+    cantidadEl.textContent = "Cantidad: ";
+
+    const cantidadValor = document.createElement("SPAN");
+    cantidadValor.classList.add("fw-normal");
+    cantidadValor.textContent = cantidad;
+
+    // Precio del articulo
+    const precioEl = document.createElement("P");
+    precioEl.classList.add("fw-bold");
+    precioEl.textContent = "Precio: ";
+
+    const precioValor = document.createElement("SPAN");
+    precioValor.classList.add("fw-normal");
+    precioValor.textContent = `$${precio}`;
+
+    // Subtotal del articulo
+    const subtotalEl = document.createElement("P");
+    subtotalEl.classList.add("fw-bold");
+    subtotalEl.textContent = "Subtotal: ";
+
+    const subtotalValor = document.createElement("SPAN");
+    subtotalValor.classList.add("fw-normal");
+    subtotalValor.textContent = calcularSubtotal(precio, cantidad);
+
+    // Boton para eliminar
+    const btnEliminar = document.createElement("BUTTON");
+    btnEliminar.classList.add("btn", "btn-danger");
+    btnEliminar.textContent = "Eliminar del pedido";
+
+    // Función para eliminar del pedido
+    btnEliminar.onclick = function () {
+      eliminarProducto(id);
+    };
+
+    // Agregar valores a sus contenedores
+    cantidadEl.appendChild(cantidadValor);
+    precioEl.appendChild(precioValor);
+    subtotalEl.appendChild(subtotalValor);
+
+    // Agregar elementos al LI
+    lista.appendChild(nombreEl);
+    lista.appendChild(cantidadEl);
+    lista.appendChild(precioEl);
+    lista.appendChild(subtotalEl);
+    lista.appendChild(btnEliminar);
+
+    // Agregar lista al grupo principal
+    grupo.appendChild(lista);
+  });
+
+  // Agregar al contenido
+  resumen.appendChild(mesa);
+  resumen.appendChild(hora);
+  resumen.appendChild(heading);
+  resumen.appendChild(grupo);
+
+  contenido.appendChild(resumen);
+}
+
+function limpiarHTML() {
+  const contenido = document.querySelector("#resumen .contenido");
+
+  while (contenido.firstChild) {
+    contenido.removeChild(contenido.firstChild);
+  }
+}
+
+function calcularSubtotal(precio, cantidad) {
+  return `$${precio * cantidad}`;
+}
+
+function eliminarProducto(id) {
+  const { pedido } = cliente;
+  const resultado = pedido.filter((articulo) => articulo.id !== id);
+  cliente.pedido = [...resultado];
+
+  // Limpiar el código HTML previo
+  limpiarHTML();
+
+  if (cliente.pedido.length) {
+    // Mostrar el resumen
+    actualizarResumen();
+  } else {
+    mensajePedidoVacio();
+  }
+
+  // El producto se eliminó por lo tanto regresamos la cantidad a 0 en el Form
+  const productoEliminado = `#producto-${id}`;
+  const inputEliminado = document.querySelector(productoEliminado);
+  inputEliminado.value = 0;
+}
+
+function mensajePedidoVacio() {
+  const contenido = document.querySelector("#resumen .contenido");
+
+  const texto = document.createElement("P");
+  texto.classList.add("text-center");
+  texto.textContent = "Añade los elementos del pedido";
+
+  contenido.appendChild(texto);
 }
